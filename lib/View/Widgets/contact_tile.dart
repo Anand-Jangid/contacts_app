@@ -1,11 +1,13 @@
 import 'dart:math';
+import 'package:contacts_app/View/Screens/contanct_detail_screen.dart';
 import 'package:flutter/material.dart';
 
+import '../../Models/contact.dart';
+
 class ContactTile extends StatelessWidget {
-  final String firstName;
-  final String? lastName;
-  final String? imagePath;
-  ContactTile({super.key, required this.firstName, this.lastName, this.imagePath});
+  final Contact contact;
+  ContactTile(
+      {super.key, required this.contact});
 
   var random = Random();
 
@@ -13,13 +15,19 @@ class ContactTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Card(
-        elevation: 2,
-        child: ListTile(
-          leading: CircleAvatar(
-              backgroundColor: colorList[random.nextInt(10)],
-              child: Text(firstName[0])),
-          title: Text('$firstName ${lastName ?? ''}'),
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => ContactDetailScreen(contact: contact,)));
+        },
+        child: Card(
+          elevation: 2,
+          child: ListTile(
+            leading: CircleAvatar(
+                backgroundColor: colorList[random.nextInt(10)],
+                child: Text(contact.firstName[0])),
+            title: Text('${contact.firstName} ${contact.lastName ?? ''}'),
+          ),
         ),
       ),
     );

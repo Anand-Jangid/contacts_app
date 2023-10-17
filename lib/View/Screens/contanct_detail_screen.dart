@@ -4,16 +4,36 @@ import 'package:flutter/material.dart';
 import '../Widgets/text_field.dart';
 
 class ContactDetailScreen extends StatefulWidget {
+  const ContactDetailScreen({super.key, this.contact});
+  final Contact? contact;
   @override
   _ContactDetailScreenState createState() => _ContactDetailScreenState();
 }
 
 class _ContactDetailScreenState extends State<ContactDetailScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  TextEditingController _firstNameController = TextEditingController();
-  TextEditingController _lastNameController = TextEditingController();
-  TextEditingController _phoneNumberController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
+  late TextEditingController _phoneNumberController;
+  late TextEditingController _emailController;
+
+  @override
+  void initState() {
+    super.initState();
+    _firstNameController = TextEditingController(text: widget.contact?.firstName);
+    _lastNameController = TextEditingController(text: widget.contact?.lastName);
+    _phoneNumberController = TextEditingController(text: widget.contact?.phoneNumber);
+    _emailController = TextEditingController(text: widget.contact?.email);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _phoneNumberController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +55,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               ),
             ),
             TextFields(
+              // initialValue: widget.contact?.firstName,
               label: 'First Name',
               controller: _firstNameController,
               prefixIcon: Icon(Icons.person),
@@ -48,12 +69,14 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             ),
             TextFields(
               label: 'Last Name',
+              // initialValue: widget.contact?.lastName,
               controller: _lastNameController,
               keyBoardType: TextInputType.name,
               prefixIcon: Icon(Icons.person),
             ),
             TextFields(
               label: 'Phone Number',
+              // initialValue: widget.contact?.phoneNumber,
               controller: _phoneNumberController,
               keyBoardType: TextInputType.phone,
               prefixIcon: Icon(Icons.phone),
@@ -69,6 +92,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             ),
             TextFields(
               label: 'Email',
+              // initialValue: widget.contact?.email,
               controller: _emailController,
               keyBoardType: TextInputType.emailAddress,
               prefixIcon: Icon(Icons.email),
@@ -89,9 +113,12 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                   Contact contact = Contact(
                       firstName: _firstNameController.text,
                       phoneNumber: _phoneNumberController.text,
-                      lastName: _lastNameController.text == "" ? null : _lastNameController.text,
-                      email: _emailController.text == "" ? null : _emailController.text
-                  );
+                      lastName: _lastNameController.text == ""
+                          ? null
+                          : _lastNameController.text,
+                      email: _emailController.text == ""
+                          ? null
+                          : _emailController.text);
                   print(contact);
                   //TODO: Save the contact
                 }
