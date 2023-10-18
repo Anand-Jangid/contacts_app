@@ -27,13 +27,13 @@ class _AllGroupScreenState extends State<AllGroupScreen> {
             flexibleSpace: FlexibleSpaceBar(
                 background: Image.asset('asset/image/contacts.png')),
           ),
-          SliverList.builder(
-              itemCount: 200,
-              itemBuilder: (context, index) {
-                return ContactTile(
-                  contact: Contact(firstName: "Anand", phoneNumber: "1234567890", lastName: "Jangid", email: "jangidme88@gmail.com"),
-                );
-              })
+          // SliverList.builder(
+          //     itemCount: 200,
+          //     itemBuilder: (context, index) {
+          //       return ContactTile(
+          //         contact: Contact(firstName: "Anand", phoneNumber: "1234567890", lastName: "Jangid", email: "jangidme88@gmail.com"),
+          //       );
+          //     })
 
         ],
       );
