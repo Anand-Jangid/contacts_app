@@ -1,8 +1,13 @@
+import 'package:contacts_app/Database/contact_database.dart';
 import 'package:contacts_app/View/Screens/contanct_detail_screen.dart';
 import 'package:contacts_app/View/Screens/home_screen.dart';
+import 'package:contacts_app/locator.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  setupLocator();
+  await locator<ContactDatabase>().init();
   runApp(const MyApp());
 }
 
@@ -22,4 +27,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

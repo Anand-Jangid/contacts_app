@@ -18,20 +18,20 @@ class Contact {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'id': id,
-      'firstName': firstName,
-      'lastName': lastName,
+      'contact_id': id,
+      'first_name': firstName,
+      'last_name': lastName,
       'email': email,
-      'phoneNumber': phoneNumber,
+      'phone': phoneNumber,
     };
   }
 
   factory Contact.fromMap(Map<String, dynamic> map) {
     return Contact(
-      firstName: map['firstName'] as String,
-      phoneNumber : map['phoneNumber'] as String,
-      id: map['id'] != null ? map['id'] as int : null,
-      lastName: map['lastName'] != null ? map['lastName'] as String : null,
+      firstName: map['first_name'] as String,
+      phoneNumber : map['phone'] as String,
+      id: map['contact_id'] != null ? map['contact_id'] as int : null,
+      lastName: map['last_name'] != null ? map['last_name'] as String : null,
       email: map['email'] != null ? map['email'] as String : null,
     );
   }

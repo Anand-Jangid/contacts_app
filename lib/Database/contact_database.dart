@@ -1,14 +1,13 @@
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-
 import '../Models/contact.dart';
 
 class ContactDatabase {
   static const _databaseName = "Contancts.db";
   static const _databaseVersion = 1;
 
-  static const table = "my_table";
+  static const table = "Contacts";
 
   late Database _db;
 
@@ -33,7 +32,8 @@ class ContactDatabase {
 
   Future<int> addContact(Contact contact) async {
     try {
-      return await _db.insert(table, contact.toMap());
+      int result = await _db.insert(table, contact.toMap());
+      return result;
     } catch (e) {
       throw e;
     }
@@ -41,7 +41,7 @@ class ContactDatabase {
 
   Future<List<Contact>> getAllContacts() async {
     try {
-      final contactsMap = await _db.query(table, orderBy: "firstName");
+      final contactsMap = await _db.query(table, orderBy: "first_name");
       final result = contactsMap.map((e) => Contact.fromMap(e)).toList();
       return result;
     } catch (e) {
@@ -49,15 +49,11 @@ class ContactDatabase {
     }
   }
 
-  Future<int> updateContact(Contact contact) async {
-    int? id = contact.id ?? null;
-    if (id == null) {
-      throw Exception("No id for given contact");
-    }
-
+  Future<int> updateContact(Contact contact, int id) async {
     try {
-      return await _db.update(table, contact.toMap(),
+      int result = await _db.update(table, contact.toMap(),
           where: 'contact_id = ?', whereArgs: [id]);
+      return result;
     } catch (e) {
       throw e;
     }

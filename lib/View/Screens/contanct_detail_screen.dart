@@ -1,5 +1,9 @@
+import 'package:contacts_app/Constants/enums.dart';
+import 'package:contacts_app/Constants/exceptions.dart';
+import 'package:contacts_app/Database/contact_database.dart';
 import 'package:contacts_app/Models/contact.dart';
 import 'package:contacts_app/View/Widgets/circular_button.dart';
+import 'package:contacts_app/locator.dart';
 import 'package:flutter/material.dart';
 
 import '../Widgets/text_field.dart';
@@ -47,11 +51,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
         child: ListView(
           padding: EdgeInsets.all(16),
           children: <Widget>[
-            const SizedBox(
-              height: 50,
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 16, 8, 16),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(8, 8, 8, 8),
               child: CircleAvatar(
                 radius: 100,
                 child: Icon(
@@ -115,7 +116,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             SizedBox(height: 16),
             (widget.contact == null)
                 ? ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         Contact contact = Contact(
                             firstName: _firstNameController.text,
@@ -126,8 +127,12 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                             email: _emailController.text == ""
                                 ? null
                                 : _emailController.text);
-                        print(contact);
-                        //TODO: Save the contact
+                        try {
+                          await locator<ContactDatabase>().addContact(contact);
+                          Navigator.of(context).pop();
+                        } on Exception catch (e) {
+                          throw DatabaseException(e.toString());
+                        }
                       }
                     },
                     child: Text('Save'),
@@ -137,27 +142,45 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     children: [
                       CircularButton(
                         icons: Icons.update,
-                        onPressed: () async{
-                          var result = await showPopup("Delete",
-                                  "Do you want to delete the contact?");
-                          print(result);
+                        onPressed: () async {
+                          var result = await showPopup(
+                              "Update", "Do you want to update the contact?");
+                          if (result == PopUpResponse.YES) {
+                            Contact contact = Contact(
+                                id: widget.contact!.id,
+                                firstName: _firstNameController.text,
+                                phoneNumber: _phoneNumberController.text,
+                                lastName: _lastNameController.text == ""
+                                    ? null
+                                    : _lastNameController.text,
+                                email: _emailController.text == ""
+                                    ? null
+                                    : _emailController.text);
+
+                            locator<ContactDatabase>()
+                                .updateContact(contact, widget.contact!.id!);
+                            Navigator.pop(context);
+                          }
                         },
                         title: "Update",
                         size: 35,
                       ),
                       CircularButton(
                         icons: Icons.delete,
-                        onPressed: () async{
-                          var result = await showPopup("Delete",
-                                  "Do you want to delete the contact?");
-                          print(result);
+                        onPressed: () async {
+                          var result = await showPopup(
+                              "Delete", "Do you want to delete the contact?");
+                          if (result == PopUpResponse.YES) {
+                            locator<ContactDatabase>()
+                                .deleteContact(widget.contact!.id!);
+                          }
                         },
                         title: "Delete",
                         size: 35,
                       ),
                       CircularButton(
                         icons: Icons.share,
-                        onPressed: (){},
+                        onPressed: () {},
                         title: "Share",
                         size: 35,
                       ),
@@ -197,12 +220,12 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             actions: [
               TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop("Yes");
+                    Navigator.of(context).pop(PopUpResponse.YES);
                   },
                   child: Text("Yes")),
               TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop("No");
+                    Navigator.of(context).pop(PopUpResponse.NO);
                   },
                   child: Text("No"))
             ],
