@@ -6,11 +6,18 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../Models/contact.dart';
 
-class ContactTile extends StatelessWidget {
+class ContactTile extends StatefulWidget {
   final Contact contact;
   ContactTile({super.key, required this.contact});
 
+  @override
+  State<ContactTile> createState() => _ContactTileState();
+}
+
+class _ContactTileState extends State<ContactTile> {
   var random = Random();
+
+  bool _expandTile = false;
 
   @override
   Widget build(BuildContext context) {
@@ -23,26 +30,28 @@ class ContactTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(15.0),
         ),
         child: ExpansionTile(
+          onExpansionChanged: (value) {
+            setState(() {
+              _expandTile = value;
+            });
+          },
           leading: CircleAvatar(
               backgroundColor: colorList[random.nextInt(10)],
-              child: Text(contact.firstName[0])),
-          title: Text('${contact.firstName} ${contact.lastName ?? ''}'),
-          trailing: CircleAvatar(
-              child: IconButton(
-            icon: Icon(Icons.call_rounded),
-            onPressed: () {},
-          )),
+              child: Text(widget.contact.firstName[0])),
+          title: Text(
+              '${widget.contact.firstName} ${widget.contact.lastName ?? ''}'),
+          trailing: (_expandTile) ? Icon(Icons.keyboard_arrow_up_outlined) :Icon(Icons.keyboard_arrow_down_outlined),
           children: [
             const SizedBox(
               height: 10,
             ),
             ListTile(
               leading: Icon(Icons.email),
-              title: Text(contact.email ?? ""),
+              title: Text(widget.contact.email ?? ""),
             ),
             ListTile(
               leading: Icon(Icons.phone),
-              title: Text(contact.phoneNumber),
+              title: Text(widget.contact.phoneNumber),
             ),
             Center(
               child: Row(
@@ -61,11 +70,17 @@ class ContactTile extends StatelessWidget {
                       },
                       title: "Email"),
                   CircularButton(
+                      icons: Icons.sms_rounded,
+                      onPressed: () async {
+                        await _launchSMS();
+                      },
+                      title: "SMS"),
+                  CircularButton(
                       icons: Icons.edit_rounded,
                       onPressed: () {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (context) => ContactDetailScreen(
-                                  contact: contact,
+                                  contact: widget.contact,
                                 )));
                       },
                       title: "Edit"),
@@ -95,7 +110,7 @@ class ContactTile extends StatelessWidget {
   ];
 
   Future _launchPhone() async {
-    final Uri phoneUri = Uri(scheme: 'tel', path: contact.phoneNumber);
+    final Uri phoneUri = Uri(scheme: 'tel', path: widget.contact.phoneNumber);
     return await launchUrl(phoneUri);
   }
 
@@ -109,11 +124,22 @@ class ContactTile extends StatelessWidget {
   Future _launchEmail() async {
     final Uri emailUri = Uri(
       scheme: 'mailto',
-      path: contact.email,
-      query: encodeQueryParameters(<String, String>{
-        'subject': 'Example Subject & Symbols are allowed!',
-      }),
+      path: widget.contact.email,
+      // query: encodeQueryParameters(<String, String>{
+      //   'subject': 'Example Subject & Symbols are allowed!',
+      // }),
     );
     launchUrl(emailUri);
+  }
+
+  Future _launchSMS() async {
+    final Uri smsLaunchUri = Uri(
+      scheme: 'sms',
+      path: widget.contact.phoneNumber,
+      // queryParameters: <String, String>{
+      //   'body': Uri.encodeComponent('Example Subject & Symbols are allowed!'),
+      // },
+    );
+    launchUrl(smsLaunchUri);
   }
 }
