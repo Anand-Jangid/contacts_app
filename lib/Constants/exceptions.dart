@@ -1,9 +1,9 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-class DatabaseException implements Exception {
-  final String message;
-
-  DatabaseException(this.message);
+class MyDatabaseException implements Exception {
+  final String title;
+  final String description;
+  MyDatabaseException(this.title, this.description);
 
   @override
-  String toString() => 'DatabaseException(message: $message)';
+  String toString() => 'DatabaseException(title: $title, description: $description)';
 }

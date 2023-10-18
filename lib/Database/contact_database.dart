@@ -1,3 +1,4 @@
+import 'package:contacts_app/Constants/exceptions.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -34,8 +35,13 @@ class ContactDatabase {
     try {
       int result = await _db.insert(table, contact.toMap());
       return result;
-    } catch (e) {
-      throw e;
+    } on DatabaseException catch (e) {
+      if (e.isUniqueConstraintError()) {
+        // String message = 
+        throw MyDatabaseException("Unique Constraint Error", e.toString());
+      } else {
+        rethrow;
+      }
     }
   }
 

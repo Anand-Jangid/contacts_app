@@ -1,8 +1,9 @@
 import 'package:contacts_app/Database/contact_database.dart';
 import 'package:contacts_app/Models/contact.dart';
+import 'package:contacts_app/Provider/contact_provider.dart';
 import 'package:contacts_app/locator.dart';
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
 import '../Widgets/contact_tile.dart';
 
 class AllContactScreen extends StatefulWidget {
@@ -13,122 +14,61 @@ class AllContactScreen extends StatefulWidget {
 }
 
 class _AllContactScreenState extends State<AllContactScreen> {
-
-  Future<List<Contact>> fetchData() async {
-    await Future.delayed(const Duration(microseconds: 500));
-    return [
-      Contact(
-          firstName: "John",
-          lastName: "Doe",
-          phoneNumber: "(123) 456-7890",
-          email: "john.doe@example.com"),
-      Contact(
-          firstName: "Alice",
-          lastName: "Smith",
-          phoneNumber: "(987) 654-3210",
-          email: "alice.smith@example.com"),
-      Contact(
-          firstName: "Robert",
-          lastName: "Johnson",
-          phoneNumber: "(555) 123-4567",
-          email: "robert.johnson@example.com"),
-      Contact(
-          firstName: "Emily",
-          lastName: "Wilson",
-          phoneNumber: "(777) 888-9999",
-          email: "emily.wilson@example.com"),
-      Contact(
-          firstName: "Michael",
-          lastName: "Davis",
-          phoneNumber: "(555) 123-9876",
-          email: "michael.davis@example.com"),
-      Contact(
-          firstName: "John",
-          lastName: "Doe",
-          phoneNumber: "(123) 456-7890",
-          email: "john.doe@example.com"),
-      Contact(
-          firstName: "Alice",
-          lastName: "Smith",
-          phoneNumber: "(987) 654-3210",
-          email: "alice.smith@example.com"),
-      Contact(
-          firstName: "Robert",
-          lastName: "Johnson",
-          phoneNumber: "(555) 123-4567",
-          email: "robert.johnson@example.com"),
-      Contact(
-          firstName: "Emily",
-          lastName: "Wilson",
-          phoneNumber: "(777) 888-9999",
-          email: "emily.wilson@example.com"),
-      Contact(
-          firstName: "Michael",
-          lastName: "Davis",
-          phoneNumber: "(555) 123-9876",
-          email: "michael.davis@example.com"),
-      Contact(
-          firstName: "John",
-          lastName: "Doe",
-          phoneNumber: "(123) 456-7890",
-          email: "john.doe@example.com"),
-      Contact(
-          firstName: "Alice",
-          lastName: "Smith",
-          phoneNumber: "(987) 654-3210",
-          email: "alice.smith@example.com"),
-      Contact(
-          firstName: "Robert",
-          lastName: "Johnson",
-          phoneNumber: "(555) 123-4567",
-          email: "robert.johnson@example.com"),
-      Contact(
-          firstName: "Emily",
-          lastName: "Wilson",
-          phoneNumber: "(777) 888-9999",
-          email: "emily.wilson@example.com"),
-      Contact(
-          firstName: "Michael",
-          lastName: "Davis",
-          phoneNumber: "(555) 123-9876",
-          email: "michael.davis@example.com"),
-    ];
+  @override
+  void initState() {
+    super.initState();
+    // Provider.of<ContactProvider>(context, listen: false).getAllContacts();
   }
 
   @override
   Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar(
+          title: Text(
+            "My Contacts",
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
+          centerTitle: true,
+          pinned: true,
+          expandedHeight: 200,
+          floating: false,
+          flexibleSpace: FlexibleSpaceBar(
+              background: Image.asset('asset/image/contacts.png')),
+        ),
+        ContactLists()
+      ],
+    );
+    // },
+  }
+}
+
+class ContactLists extends StatelessWidget {
+  ContactLists({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return FutureBuilder(
-      future: locator<ContactDatabase>().getAllContacts(),
+      future:
+          Provider.of<ContactProvider>(context, listen: false).getAllContacts(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return SliverToBoxAdapter(
+            child: Center(child: CircularProgressIndicator())
+          );
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (!snapshot.hasData) {
-          return Center(child: Text('No data available.'));
+          return SliverToBoxAdapter(child: Center(child: Text('Error: ${snapshot.error}')));
         }
-        return CustomScrollView(
-          slivers: <Widget>[
-            SliverAppBar(
-              title: Text(
-                "My Contacts",
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              centerTitle: true,
-              pinned: true,
-              expandedHeight: 200,
-              floating: false,
-              flexibleSpace: FlexibleSpaceBar(
-                  background: Image.asset('asset/image/contacts.png')),
-            ),
-            SliverList.builder(
-                itemCount: snapshot.data!.length,
+        return Consumer<ContactProvider>(
+          builder: (context, value, child) {
+            return SliverList.builder(
+                itemCount: value.contacts.length,
                 itemBuilder: (context, index) {
-                  return ContactTile(
-                    contact: snapshot.data![index],
-                  );
-                })
-          ],
+                  return ContactTile(contact: value.contacts[index]);
+                });
+          },
         );
       },
     );

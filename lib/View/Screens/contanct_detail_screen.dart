@@ -2,9 +2,11 @@ import 'package:contacts_app/Constants/enums.dart';
 import 'package:contacts_app/Constants/exceptions.dart';
 import 'package:contacts_app/Database/contact_database.dart';
 import 'package:contacts_app/Models/contact.dart';
+import 'package:contacts_app/Provider/contact_provider.dart';
 import 'package:contacts_app/View/Widgets/circular_button.dart';
 import 'package:contacts_app/locator.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../Widgets/text_field.dart';
 
@@ -128,10 +130,15 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                                 ? null
                                 : _emailController.text);
                         try {
-                          await locator<ContactDatabase>().addContact(contact);
-                          Navigator.of(context).pop();
-                        } on Exception catch (e) {
-                          throw DatabaseException(e.toString());
+                          await Provider.of<ContactProvider>(context,
+                                  listen: false)
+                              .addContact(contact);
+                          // Navigator.of(context).pop();
+                        } on MyDatabaseException catch (e) {
+                          ScaffoldMessenger.of(context)
+                              .hideCurrentMaterialBanner();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(e.description)));
                         }
                       }
                     },
@@ -156,9 +163,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                                 email: _emailController.text == ""
                                     ? null
                                     : _emailController.text);
-
-                            locator<ContactDatabase>()
-                                .updateContact(contact, widget.contact!.id!);
+                            await Provider.of<ContactProvider>(context, listen: false)
+                                .updateContact(widget.contact!.id!, contact);
                             Navigator.pop(context);
                           }
                         },
@@ -171,8 +177,9 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                           var result = await showPopup(
                               "Delete", "Do you want to delete the contact?");
                           if (result == PopUpResponse.YES) {
-                            locator<ContactDatabase>()
+                            await Provider.of<ContactProvider>(context, listen: false)
                                 .deleteContact(widget.contact!.id!);
+                            Navigator.pop(context);
                           }
                         },
                         title: "Delete",

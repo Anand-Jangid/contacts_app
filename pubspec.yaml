@@ -40,6 +40,7 @@ dependencies:
   path: ^1.8.3
   url_launcher: ^6.1.14
   get_it: ^7.6.4
+  provider: ^6.0.5
 
 dev_dependencies:
   flutter_test:
