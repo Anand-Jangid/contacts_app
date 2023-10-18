@@ -2,10 +2,12 @@ import 'package:contacts_app/Constants/enums.dart';
 import 'package:contacts_app/Constants/exceptions.dart';
 import 'package:contacts_app/Database/contact_database.dart';
 import 'package:contacts_app/Models/contact.dart';
+import 'package:contacts_app/Provider/contact_image_picker.dart';
 import 'package:contacts_app/Provider/contact_provider.dart';
 import 'package:contacts_app/View/Widgets/circular_button.dart';
 import 'package:contacts_app/locator.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../Widgets/text_field.dart';
@@ -51,23 +53,28 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           children: <Widget>[
-            const Padding(
-              padding: EdgeInsets.fromLTRB(8, 8, 8, 8),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
               child: CircleAvatar(
-                radius: 100,
-                child: Icon(
-                  Icons.camera_alt_outlined,
-                  size: 150,
-                ),
-              ),
+                  radius: 70,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.add_a_photo_rounded,
+                      size: 70,
+                    ),
+                    onPressed: () async {
+                      // print("Add Photo");
+                      await pickImagePopUp();
+                    },
+                  )),
             ),
             TextFields(
               // initialValue: widget.contact?.firstName,
               label: 'First Name',
               controller: _firstNameController,
-              prefixIcon: Icon(Icons.person),
+              prefixIcon: const Icon(Icons.person),
               keyBoardType: TextInputType.name,
               validator: (value) {
                 if (value == "" || value == null) {
@@ -81,14 +88,14 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               // initialValue: widget.contact?.lastName,
               controller: _lastNameController,
               keyBoardType: TextInputType.name,
-              prefixIcon: Icon(Icons.person),
+              prefixIcon: const Icon(Icons.person),
             ),
             TextFields(
               label: 'Phone Number',
               // initialValue: widget.contact?.phoneNumber,
               controller: _phoneNumberController,
               keyBoardType: TextInputType.phone,
-              prefixIcon: Icon(Icons.phone),
+              prefixIcon: const Icon(Icons.phone),
               validator: (value) {
                 if (value == null || value == "") {
                   return 'Phone Number is required';
@@ -104,7 +111,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               // initialValue: widget.contact?.email,
               controller: _emailController,
               keyBoardType: TextInputType.emailAddress,
-              prefixIcon: Icon(Icons.email),
+              prefixIcon: const Icon(Icons.email),
               validator: (value) {
                 if (value == "" || value == null) {
                   return null;
@@ -115,7 +122,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                 return null;
               },
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             (widget.contact == null)
                 ? ElevatedButton(
                     onPressed: () async {
@@ -133,7 +140,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                           await Provider.of<ContactProvider>(context,
                                   listen: false)
                               .addContact(contact);
-                          // Navigator.of(context).pop();
+                          Navigator.of(context).pop();
                         } on MyDatabaseException catch (e) {
                           ScaffoldMessenger.of(context)
                               .hideCurrentMaterialBanner();
@@ -142,7 +149,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                         }
                       }
                     },
-                    child: Text('Save'),
+                    child: const Text('Save'),
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -163,7 +170,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                                 email: _emailController.text == ""
                                     ? null
                                     : _emailController.text);
-                            await Provider.of<ContactProvider>(context, listen: false)
+                            await Provider.of<ContactProvider>(context,
+                                    listen: false)
                                 .updateContact(widget.contact!.id!, contact);
                             Navigator.pop(context);
                           }
@@ -177,7 +185,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                           var result = await showPopup(
                               "Delete", "Do you want to delete the contact?");
                           if (result == PopUpResponse.YES) {
-                            await Provider.of<ContactProvider>(context, listen: false)
+                            await Provider.of<ContactProvider>(context,
+                                    listen: false)
                                 .deleteContact(widget.contact!.id!);
                             Navigator.pop(context);
                           }
@@ -214,28 +223,62 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     return true;
   }
 
-  Future showPopup(String title, String content) {
+  Future showPopup(String title, String? content) {
     return showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text(title),
-            content: Text(
-              content,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
+            content: (content != null)
+                ? Text(
+                    content,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  )
+                : null,
             actions: [
               TextButton(
                   onPressed: () {
                     Navigator.of(context).pop(PopUpResponse.YES);
                   },
-                  child: Text("Yes")),
+                  child: const Text("Yes")),
               TextButton(
                   onPressed: () {
                     Navigator.of(context).pop(PopUpResponse.NO);
                   },
-                  child: Text("No"))
+                  child: const Text("No"))
             ],
+          );
+        });
+  }
+
+  Future pickImagePopUp() {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Pick Image"),
+            content: SingleChildScrollView(
+              child: Column(children: [
+                ListTile(
+                  leading: const Icon(Icons.camera_alt_rounded),
+                  title: const Text("Camera"),
+                  onTap: () async {
+                    var image =
+                        await ContactImagePicker().pickImage(ImageSource.camera);
+                    print(image);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_album_rounded),
+                  title: const Text("Gallery"),
+                  onTap: () async{
+                    var image =
+                        await ContactImagePicker().pickImage(ImageSource.gallery);
+                    print(image);
+                  },
+                )
+              ]),
+            ),
           );
         });
   }
