@@ -1,4 +1,5 @@
 import 'package:contacts_app/Models/contact.dart';
+import 'package:contacts_app/View/Widgets/circular_button.dart';
 import 'package:flutter/material.dart';
 
 import '../Widgets/text_field.dart';
@@ -20,9 +21,11 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _firstNameController = TextEditingController(text: widget.contact?.firstName);
+    _firstNameController =
+        TextEditingController(text: widget.contact?.firstName);
     _lastNameController = TextEditingController(text: widget.contact?.lastName);
-    _phoneNumberController = TextEditingController(text: widget.contact?.phoneNumber);
+    _phoneNumberController =
+        TextEditingController(text: widget.contact?.phoneNumber);
     _emailController = TextEditingController(text: widget.contact?.email);
   }
 
@@ -49,9 +52,12 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 16, 8, 16),
-              child: Icon(
-                Icons.camera_alt_outlined,
-                size: 200,
+              child: CircleAvatar(
+                radius: 100,
+                child: Icon(
+                  Icons.camera_alt_outlined,
+                  size: 150,
+                ),
               ),
             ),
             TextFields(
@@ -107,24 +113,56 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
               },
             ),
             SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  Contact contact = Contact(
-                      firstName: _firstNameController.text,
-                      phoneNumber: _phoneNumberController.text,
-                      lastName: _lastNameController.text == ""
-                          ? null
-                          : _lastNameController.text,
-                      email: _emailController.text == ""
-                          ? null
-                          : _emailController.text);
-                  print(contact);
-                  //TODO: Save the contact
-                }
-              },
-              child: Text('Submit'),
-            ),
+            (widget.contact == null)
+                ? ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        Contact contact = Contact(
+                            firstName: _firstNameController.text,
+                            phoneNumber: _phoneNumberController.text,
+                            lastName: _lastNameController.text == ""
+                                ? null
+                                : _lastNameController.text,
+                            email: _emailController.text == ""
+                                ? null
+                                : _emailController.text);
+                        print(contact);
+                        //TODO: Save the contact
+                      }
+                    },
+                    child: Text('Save'),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      CircularButton(
+                        icons: Icons.update,
+                        onPressed: () async{
+                          var result = await showPopup("Delete",
+                                  "Do you want to delete the contact?");
+                          print(result);
+                        },
+                        title: "Update",
+                        size: 35,
+                      ),
+                      CircularButton(
+                        icons: Icons.delete,
+                        onPressed: () async{
+                          var result = await showPopup("Delete",
+                                  "Do you want to delete the contact?");
+                          print(result);
+                        },
+                        title: "Delete",
+                        size: 35,
+                      ),
+                      CircularButton(
+                        icons: Icons.share,
+                        onPressed: (){},
+                        title: "Share",
+                        size: 35,
+                      ),
+                    ],
+                  )
           ],
         ),
       ),
@@ -144,5 +182,31 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
       return false;
     }
     return true;
+  }
+
+  Future showPopup(String title, String content) {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text(title),
+            content: Text(
+              content,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop("Yes");
+                  },
+                  child: Text("Yes")),
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop("No");
+                  },
+                  child: Text("No"))
+            ],
+          );
+        });
   }
 }
