@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:contacts_app/Constants/enums.dart';
 import 'package:contacts_app/Constants/exceptions.dart';
 import 'package:contacts_app/Database/contact_database.dart';
@@ -55,20 +57,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-              child: CircleAvatar(
-                  radius: 70,
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.add_a_photo_rounded,
-                      size: 70,
-                    ),
-                    onPressed: () async {
-                      // print("Add Photo");
-                      await pickImagePopUp();
-                    },
-                  )),
+            ImageWidget(
+              image: null,
             ),
             TextFields(
               // initialValue: widget.contact?.firstName,
@@ -257,6 +247,49 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           );
         });
   }
+}
+
+class ImageWidget extends StatefulWidget {
+  const ImageWidget({super.key, required this.image});
+
+  final File? image;
+
+  @override
+  State<ImageWidget> createState() => _ImageWidgetState();
+}
+
+class _ImageWidgetState extends State<ImageWidget> {
+  late File? image;
+  @override
+  void initState() {
+    super.initState();
+    image = widget.image;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+      child: IconButton(
+        icon: (image != null)
+            ? ClipOval(child: Container(width: 140, height: 140, color: Colors.transparent, child: Image.file(image!, fit: BoxFit.cover,)))
+            : const CircleAvatar(
+              radius: 70,
+              child: Icon(
+                  Icons.add_a_photo_rounded,
+                  size: 70,
+                ),
+            ),
+        onPressed: () async {
+          final selectedImage = await pickImagePopUp();
+          print(selectedImage);
+          setState(() {
+            image = selectedImage;
+          });
+        },
+      ),
+    );
+  }
 
   Future pickImagePopUp() {
     return showDialog(
@@ -270,18 +303,18 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                   leading: const Icon(Icons.camera_alt_rounded),
                   title: const Text("Camera"),
                   onTap: () async {
-                    var image =
-                        await ContactImagePicker().pickImage(ImageSource.camera);
-                    print(image);
+                    var image = await ContactImagePicker()
+                        .pickImage(ImageSource.camera);
+                    Navigator.of(context).pop(image);
                   },
                 ),
                 ListTile(
                   leading: const Icon(Icons.photo_album_rounded),
                   title: const Text("Gallery"),
-                  onTap: () async{
-                    var image =
-                        await ContactImagePicker().pickImage(ImageSource.gallery);
-                    print(image);
+                  onTap: () async {
+                    var image = await ContactImagePicker()
+                        .pickImage(ImageSource.gallery);
+                    Navigator.of(context).pop(image);
                   },
                 )
               ]),
