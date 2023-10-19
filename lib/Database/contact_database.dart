@@ -37,7 +37,7 @@ class ContactDatabase {
       return result;
     } on DatabaseException catch (e) {
       if (e.isUniqueConstraintError()) {
-        // String message = 
+        // String message =
         throw MyDatabaseException("Unique Constraint Error", e.toString());
       } else {
         rethrow;
@@ -60,6 +60,12 @@ class ContactDatabase {
       int result = await _db.update(table, contact.toMap(),
           where: 'contact_id = ?', whereArgs: [id]);
       return result;
+    } on DatabaseException catch (e) {
+      if (e.isUniqueConstraintError()) {
+        throw MyDatabaseException("Unique Constraint Error", e.toString());
+      } else {
+        rethrow;
+      }
     } catch (e) {
       throw e;
     }

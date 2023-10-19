@@ -30,8 +30,12 @@ class ContactProvider extends ChangeNotifier {
   }
 
   Future<void> updateContact(int id, Contact contact) async {
-    await locator<ContactDatabase>().updateContact(contact, id);
-    getAllContacts();
+    try {
+      await locator<ContactDatabase>().updateContact(contact, id);
+      getAllContacts();
+    } on MyDatabaseException catch (e) {
+      rethrow;
+    }
   }
 
   Future<void> deleteContact(int id) async {

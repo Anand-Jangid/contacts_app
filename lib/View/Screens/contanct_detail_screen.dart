@@ -170,10 +170,17 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                                 email: _emailController.text == ""
                                     ? null
                                     : _emailController.text);
-                            await Provider.of<ContactProvider>(context,
-                                    listen: false)
-                                .updateContact(widget.contact!.id!, contact);
-                            Navigator.pop(context);
+                            try {
+                              await Provider.of<ContactProvider>(context,
+                                      listen: false)
+                                  .updateContact(widget.contact!.id!, contact);
+                              Navigator.pop(context);
+                            } on MyDatabaseException catch (e) {
+                              ScaffoldMessenger.of(context)
+                                  .hideCurrentMaterialBanner();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(e.description)));
+                            }
                           }
                         },
                         title: "Update",
