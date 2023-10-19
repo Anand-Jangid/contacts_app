@@ -7,7 +7,7 @@ class Contact {
   String firstName;
   String? lastName;
   String? email;
-  Uint8List? imageData;
+  String? imageData;
   String phoneNumber;
 
   Contact({
@@ -37,7 +37,7 @@ class Contact {
       id: map['contact_id'] != null ? map['contact_id'] as int : null,
       lastName: map['last_name'] != null ? map['last_name'] as String : null,
       email: map['email'] != null ? map['email'] as String : null,
-      imageData: map['image_data'] != null ? map['image_data'] as Uint8List : null,
+      imageData: map['image_data'] != null ? map['image_data'] as String : null,
     );
   }
 

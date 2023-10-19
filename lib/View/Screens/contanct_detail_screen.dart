@@ -28,7 +28,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   late TextEditingController _lastNameController;
   late TextEditingController _phoneNumberController;
   late TextEditingController _emailController;
-  late Uint8List? imageData;
+  late File? imageData;
 
   @override
   void initState() {
@@ -39,7 +39,9 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     _phoneNumberController =
         TextEditingController(text: widget.contact?.phoneNumber);
     _emailController = TextEditingController(text: widget.contact?.email);
-    imageData = widget.contact?.imageData;
+    imageData = (widget.contact?.imageData != null)
+        ? File(widget.contact!.imageData!)
+        : null;
   }
 
   @override
@@ -130,7 +132,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                             email: _emailController.text == ""
                                 ? null
                                 : _emailController.text,
-                            imageData: imageData);
+                            imageData: imageData?.path);
                         try {
                           await Provider.of<ContactProvider>(context,
                                   listen: false)
@@ -164,7 +166,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                                     : _lastNameController.text,
                                 email: _emailController.text == ""
                                     ? null
-                                    : _emailController.text);
+                                    : _emailController.text,
+                                imageData: imageData?.path);
                             try {
                               await Provider.of<ContactProvider>(context,
                                       listen: false)
@@ -268,8 +271,9 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     var imageSelected = await ContactImagePicker()
                         .pickImage(ImageSource.camera);
                     if (imageSelected != null) {
-                      imageData = await fileToBlob(imageSelected);
-                      Navigator.of(context).pop(imageData);
+                      // imageData = await fileToBlob(imageSelected);
+                      imageData = imageSelected;
+                      Navigator.of(context).pop(imageSelected);
                     } else {
                       throw "Error in selecting image";
                     }
@@ -282,8 +286,9 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                     var imageSelected = await ContactImagePicker()
                         .pickImage(ImageSource.gallery);
                     if (imageSelected != null) {
-                      imageData = await fileToBlob(imageSelected);
-                      Navigator.of(context).pop(imageData);
+                      // imageData = await fileToBlob(imageSelected);
+                      imageData = imageSelected;
+                      Navigator.of(context).pop(imageSelected);
                     } else {
                       throw "Error in selecting image";
                     }
@@ -300,7 +305,7 @@ class ImageWidget extends StatefulWidget {
   const ImageWidget(
       {super.key, required this.image, required this.pickImageDialog});
 
-  final Uint8List? image;
+  final File? image;
   final Function pickImageDialog;
 
   @override
@@ -308,7 +313,7 @@ class ImageWidget extends StatefulWidget {
 }
 
 class _ImageWidgetState extends State<ImageWidget> {
-  late Uint8List? newImage;
+  late File? newImage;
 
   @override
   void initState() {
@@ -327,7 +332,7 @@ class _ImageWidgetState extends State<ImageWidget> {
                     width: 140,
                     height: 140,
                     color: Colors.transparent,
-                    child: Image.memory(
+                    child: Image.file(
                       newImage!,
                       fit: BoxFit.cover,
                     )))

@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:contacts_app/Constants/exceptions.dart';
 import 'package:contacts_app/Database/contact_database.dart';
