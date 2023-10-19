@@ -24,8 +24,9 @@ class ContactDatabase {
       CREATE TABLE IF NOT EXISTS Contacts (
         contact_id INTEGER PRIMARY KEY,
         first_name TEXT NOT NULL,
+        image_data BLOB,
         last_name TEXT,
-        email TEXT,
+        email TEXT UNIQUE,
         phone TEXT NOT NULL UNIQUE
       )
     ''');
@@ -47,9 +48,11 @@ class ContactDatabase {
 
   Future<List<Contact>> getAllContacts() async {
     try {
-      final contactsMap = await _db.query(table, orderBy: "first_name");
-      final result = contactsMap.map((e) => Contact.fromMap(e)).toList();
-      return result;
+      final contactsMap = await _db.query(table, orderBy: "first_name", columns: ['contact_id', 'first_name', 'last_name', 'email', 'phone']);
+      // final imageMap = await _db.query(table, orderBy: "first_name", columns: ['image_data']);
+      final resultContact = contactsMap.map((e) => Contact.fromMap(e)).toList();
+  
+      return resultContact;
     } catch (e) {
       throw e;
     }

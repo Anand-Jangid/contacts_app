@@ -1,7 +1,4 @@
-import 'package:contacts_app/Database/contact_database.dart';
-import 'package:contacts_app/Models/contact.dart';
 import 'package:contacts_app/Provider/contact_provider.dart';
-import 'package:contacts_app/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../Widgets/contact_tile.dart';

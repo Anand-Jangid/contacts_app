@@ -1,17 +1,18 @@
 import 'dart:io';
 
+import 'dart:typed_data';
+
 import 'package:contacts_app/Constants/enums.dart';
 import 'package:contacts_app/Constants/exceptions.dart';
-import 'package:contacts_app/Database/contact_database.dart';
 import 'package:contacts_app/Models/contact.dart';
 import 'package:contacts_app/Provider/contact_image_picker.dart';
 import 'package:contacts_app/Provider/contact_provider.dart';
 import 'package:contacts_app/View/Widgets/circular_button.dart';
-import 'package:contacts_app/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../Utils/converter.dart';
 import '../Widgets/text_field.dart';
 
 class ContactDetailScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
   late TextEditingController _lastNameController;
   late TextEditingController _phoneNumberController;
   late TextEditingController _emailController;
+  late Uint8List? imageData;
 
   @override
   void initState() {
@@ -37,6 +39,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
     _phoneNumberController =
         TextEditingController(text: widget.contact?.phoneNumber);
     _emailController = TextEditingController(text: widget.contact?.email);
+    imageData = widget.contact?.imageData;
   }
 
   @override
@@ -58,7 +61,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           padding: const EdgeInsets.all(16),
           children: <Widget>[
             ImageWidget(
-              image: null,
+              image: imageData,
+              pickImageDialog: pickImagePopUp,
             ),
             TextFields(
               // initialValue: widget.contact?.firstName,
@@ -90,7 +94,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                 if (value == null || value == "") {
                   return 'Phone Number is required';
                 }
-                if (!isValidPhoneNUmber(value!)) {
+                if (!isValidPhoneNUmber(value)) {
                   return "Invalid Phone Number";
                 }
                 return null;
@@ -106,7 +110,7 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                 if (value == "" || value == null) {
                   return null;
                 }
-                if (!isValidEmail(value!)) {
+                if (!isValidEmail(value)) {
                   return 'Invalid email format';
                 }
                 return null;
@@ -125,7 +129,8 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
                                 : _lastNameController.text,
                             email: _emailController.text == ""
                                 ? null
-                                : _emailController.text);
+                                : _emailController.text,
+                            imageData: imageData);
                         try {
                           await Provider.of<ContactProvider>(context,
                                   listen: false)
@@ -247,49 +252,6 @@ class _ContactDetailScreenState extends State<ContactDetailScreen> {
           );
         });
   }
-}
-
-class ImageWidget extends StatefulWidget {
-  const ImageWidget({super.key, required this.image});
-
-  final File? image;
-
-  @override
-  State<ImageWidget> createState() => _ImageWidgetState();
-}
-
-class _ImageWidgetState extends State<ImageWidget> {
-  late File? image;
-  @override
-  void initState() {
-    super.initState();
-    image = widget.image;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
-      child: IconButton(
-        icon: (image != null)
-            ? ClipOval(child: Container(width: 140, height: 140, color: Colors.transparent, child: Image.file(image!, fit: BoxFit.cover,)))
-            : const CircleAvatar(
-              radius: 70,
-              child: Icon(
-                  Icons.add_a_photo_rounded,
-                  size: 70,
-                ),
-            ),
-        onPressed: () async {
-          final selectedImage = await pickImagePopUp();
-          print(selectedImage);
-          setState(() {
-            image = selectedImage;
-          });
-        },
-      ),
-    );
-  }
 
   Future pickImagePopUp() {
     return showDialog(
@@ -303,23 +265,87 @@ class _ImageWidgetState extends State<ImageWidget> {
                   leading: const Icon(Icons.camera_alt_rounded),
                   title: const Text("Camera"),
                   onTap: () async {
-                    var image = await ContactImagePicker()
+                    var imageSelected = await ContactImagePicker()
                         .pickImage(ImageSource.camera);
-                    Navigator.of(context).pop(image);
+                    if (imageSelected != null) {
+                      imageData = await fileToBlob(imageSelected);
+                      Navigator.of(context).pop(imageData);
+                    } else {
+                      throw "Error in selecting image";
+                    }
                   },
                 ),
                 ListTile(
                   leading: const Icon(Icons.photo_album_rounded),
                   title: const Text("Gallery"),
                   onTap: () async {
-                    var image = await ContactImagePicker()
+                    var imageSelected = await ContactImagePicker()
                         .pickImage(ImageSource.gallery);
-                    Navigator.of(context).pop(image);
+                    if (imageSelected != null) {
+                      imageData = await fileToBlob(imageSelected);
+                      Navigator.of(context).pop(imageData);
+                    } else {
+                      throw "Error in selecting image";
+                    }
                   },
                 )
               ]),
             ),
           );
         });
+  }
+}
+
+class ImageWidget extends StatefulWidget {
+  const ImageWidget(
+      {super.key, required this.image, required this.pickImageDialog});
+
+  final Uint8List? image;
+  final Function pickImageDialog;
+
+  @override
+  State<ImageWidget> createState() => _ImageWidgetState();
+}
+
+class _ImageWidgetState extends State<ImageWidget> {
+  late Uint8List? newImage;
+
+  @override
+  void initState() {
+    super.initState();
+    newImage = widget.image;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+      child: IconButton(
+        icon: (newImage != null)
+            ? ClipOval(
+                child: Container(
+                    width: 140,
+                    height: 140,
+                    color: Colors.transparent,
+                    child: Image.memory(
+                      newImage!,
+                      fit: BoxFit.cover,
+                    )))
+            : const CircleAvatar(
+                radius: 70,
+                child: Icon(
+                  Icons.add_a_photo_rounded,
+                  size: 70,
+                ),
+              ),
+        onPressed: () async {
+          var pickedImage = await widget.pickImageDialog();
+          // var selectedImage = await fileToBlob(pickedImage);
+          setState(() {
+            newImage = pickedImage;
+          });
+        },
+      ),
+    );
   }
 }
